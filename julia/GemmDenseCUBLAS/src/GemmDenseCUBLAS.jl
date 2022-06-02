@@ -1,22 +1,6 @@
-module GemmDenseCUDA
+module GemmDenseCUBLAS
 
 import CUDA
-
-function gemm!(A, B, C, A_rows, A_cols, B_cols)
-
-    row = CUDA.blockIdx().x * CUDA.blockDim().x + CUDA.threadIdx().x
-    col = CUDA.blockIdx().y * CUDA.blockDim().y + CUDA.threadIdx().y
-
-    if row <= A_rows && col <= B_cols
-        tmp = 0.0
-        for k = 1:A_cols
-            tmp += A[row, k] * B[k, col]
-        end
-        C[row, col] = tmp
-    end
-    return
-end
-
 
 function main(args::Array{String,1})::Int32
 
@@ -50,8 +34,8 @@ function main(args::Array{String,1})::Int32
     CUDA.rand!(A)
     CUDA.rand!(B)
 
-    CUDA.@cuda threads = 1024 gemm!(A, B, C, A_rows, A_cols, B_cols)
-
+    # uses cuBLAS 
+    C = A * B
     CUDA.synchronize()
 
     return 0
